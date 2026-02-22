@@ -11,32 +11,32 @@
     <link rel="apple-touch-icon" href="https://fav.farm/🍳">
 
     <style>
-        :root { --primary: #28a745; --secondary: #007bff; --bg: #f8f9fa; --text: #333; }
+        :root { --primary: #84a59d; --secondary: #9a8c98; --bg: #faf9f6; --text: #433e3a; --card: #F3EFE0; --accent: #e07a5f;}
         body { font-family: -apple-system, system-ui, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; }
         
         /* Header mit extra viel Platz oben für Mobilgeräte */
         header { 
-            background: white; 
+            background: var(--bg); 
             padding: 40px 15px 15px 15px; /* 40px oben für viel Freiraum */
             position: sticky; 
             top: 0; 
             z-index: 10; 
             box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-            border-bottom: 1px solid #eee; 
+            border-bottom: 1px solid #e5dfcc; 
         }
         h1 { font-size: 1.6rem; margin: 0 0 15px 0; text-align: center; color: #222; }
         #searchBar { 
-            width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 12px; 
-            font-size: 16px; box-sizing: border-box; outline: none; background-color: #f9f9f9;
+            width: 100%; padding: 14px; border: 1px solid #e5dfcc; border-radius: 12px; 
+            font-size: 16px; box-sizing: border-box; outline: none; background-color: white; color: var(--text);
         }
 
         .container { padding: 15px; padding-bottom: 100px; }
         
         /* Rezept-Liste */
-        details { background: #F3EFE0; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #E5DFCC; overflow: hidden; }
+        details { background: var(--card); border-radius: 16px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #e5dfcc; overflow: hidden; }
         summary { padding: 18px; font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-        summary::after { content: '❯'; font-size: 0.8em; color: #F3EFE0; }
-        details[open] summary::after { transform: rotate(90deg); color: var(--primary); }
+        summary::after { content: '❯'; font-size: 0.8em; color: #F3EFE0; background: var(--card); }
+        details[open] summary::after { transform: rotate(90deg); color: var(--text); }
         .recipe-content { padding: 15px; border-top: 1px solid #f9f9f9; line-height: 1.6; }
         
         /* Checkboxen */
@@ -52,7 +52,7 @@
         input, textarea { width: 100%; margin-bottom: 15px; padding: 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
         .save-btn { background: var(--primary); color: white; font-weight: bold; border: none; padding: 15px; border-radius: 10px; width: 100%; font-size: 18px; }
         .action-btns { display: flex; gap: 10px; margin-top: 20px; }
-        .delete-btn { background: #fee; color: #dc3583; border: 1px solid #fcc; padding: 10px; border-radius: 8px; flex-grow: 1; font-weight: bold; }
+        .delete-btn { background: transparent; color: var(--accent); border: 1px solid var(--accent) !important; padding: 10px; border-radius: 8px; flex-grow: 1; font-weight: bold; }
     </style>
 </head>
 <body>
