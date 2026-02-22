@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meine Rezepte</title>
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="icon" href="https://fav.farm/🍳">
+    <link rel="apple-touch-icon" href="https://fav.farm/🍳">
+
+    <style>
+        :root { --primary: #28a745; --secondary: #007bff; --bg: #f8f9fa; --text: #333; }
+        body { font-family: -apple-system, system-ui, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        
+        /* Header mit extra viel Platz oben für Mobilgeräte */
+        header { 
+            background: white; 
+            padding: 40px 15px 15px 15px; /* 40px oben für viel Freiraum */
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+            border-bottom: 1px solid #eee; 
+        }
+        h1 { font-size: 1.6rem; margin: 0 0 15px 0; text-align: center; color: #222; }
+        #searchBar { 
+            width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 12px; 
+            font-size: 16px; box-sizing: border-box; outline: none; background-color: #f9f9f9;
+        }
+
+        .container { padding: 15px; padding-bottom: 100px; }
+        
+        /* Rezept-Liste */
+        details { background: white; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; overflow: hidden; }
+        summary { padding: 18px; font-weight: bold; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        summary::after { content: '❯'; font-size: 0.8em; color: #ccc; }
+        details[open] summary::after { transform: rotate(90deg); color: var(--primary); }
+        .recipe-content { padding: 15px; border-top: 1px solid #f9f9f9; line-height: 1.6; }
+        
+        /* Checkboxen */
+        .ingredient-item { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; font-size: 15px; }
+        input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+
+        /* Floating Plus Button */
+        .fab { position: fixed; bottom: 30px; right: 25px; width: 65px; height: 65px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: none; cursor: pointer; z-index: 20; }
+
+        /* Overlay für Erstellen/Bearbeiten */
+        #editor-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 30; display: none; overflow-y: auto; padding: 40px 20px 20px 20px; box-sizing: border-box; }
+        .close-btn { background: #f0f0f0; border: none; padding: 10px 20px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; }
+        input, textarea { width: 100%; margin-bottom: 15px; padding: 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+        .save-btn { background: var(--primary); color: white; font-weight: bold; border: none; padding: 15px; border-radius: 10px; width: 100%; font-size: 18px; }
+        .action-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .delete-btn { background: #fee; color: #dc3545; border: 1px solid #fcc; padding: 10px; border-radius: 8px; flex-grow: 1; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Meine Rezepte 🍳</h1>
+        <input type="text" id="searchBar" placeholder="Gericht suchen..." onkeyup="filterRecipes()">
+    </header>
+
+    <div class="container" id="recipe-list">
+        </div>
+
+    <button class="fab" onclick="openEditor()">+</button>
+
+    <div id="editor-overlay">
+        <button class="close-btn" onclick="closeEditor()">✕ Abbrechen</button>
+        <h2 id="form-title">Neues Rezept</h2>
+        <input type="hidden" id="edit-index">
+        <input type="text" id="title" placeholder="Wie heißt das Gericht?">
+        <textarea id="ingredients" rows="6" placeholder="Zutaten (Zeile für Zeile)"></textarea>
+        <textarea id="instructions" rows="10" placeholder="Wie wird es zubereitet?"></textarea>
+        <button class="save-btn" onclick="saveRecipe()">Rezept speichern</button>
+    </div>
+
+    <script>
+        let recipes = JSON.parse(localStorage.getItem('myRecipes')) || [];
+
+        function openEditor(index = null) {
+            document.getElementById('editor-overlay').style.display = 'block';
+            if (index !== null) {
+                const r = recipes[index];
+                document.getElementById('title').value = r.title;
+                document.getElementById('ingredients').value = r.ingredients;
+                document.getElementById('instructions').value = r.instructions;
+                document.getElementById('edit-index').value = index;
+                document.getElementById('form-title').innerText = "Rezept bearbeiten";
+            } else {
+                clearInputs();
+                document.getElementById('edit-index').value = "";
+                document.getElementById('form-title').innerText = "Neues Rezept";
+            }
+            window.scrollTo(0,0);
+        }
+
+        function closeEditor() {
+            document.getElementById('editor-overlay').style.display = 'none';
+        }
+
+        function saveRecipe() {
+            const title = document.getElementById('title').value;
+            const ingredients = document.getElementById('ingredients').value;
+            const instructions = document.getElementById('instructions').value;
+            const editIndex = document.getElementById('edit-index').value;
+
+            if (!title) return alert("Ein Titel wäre super!");
+
+            const newRecipe = { title, ingredients, instructions };
+
+            if (editIndex === "") {
+                recipes.push(newRecipe);
+            } else {
+                recipes[editIndex] = newRecipe;
+            }
+
+            localStorage.setItem('myRecipes', JSON.stringify(recipes));
+            closeEditor();
+            renderRecipes();
+        }
+
+        function renderRecipes() {
+            const list = document.getElementById('recipe-list');
+            list.innerHTML = "";
+
+            if (recipes.length === 0) {
+                list.innerHTML = "<p style='text-align:center; color:#888; margin-top: 50px;'>Noch keine Rezepte. <br>Tippe unten auf das +, um loszulegen!</p>";
+                return;
+            }
+
+            recipes.forEach((recipe, index) => {
+                const ingredientList = recipe.ingredients.split('\n').filter(i => i.trim() !== "").map(ing => `
+                    <label class="ingredient-item">
+                        <input type="checkbox"> <span>${ing}</span>
+                    </label>
+                `).join('');
+
+                list.innerHTML += `
+                    <details class="recipe-item">
+                        <summary>${recipe.title}</summary>
+                        <div class="recipe-content">
+                            <strong>Zutaten:</strong><br>${ingredientList}<hr>
+                            <strong>Zubereitung:</strong><br><p>${recipe.instructions.replace(/\n/g, '<br>')}</p>
+                            <div class="action-btns">
+                                <button onclick="openEditor(${index})" style="background:#eef4ff; color:#007bff; border:1px solid #ccdfff; padding:10px 20px; border-radius:8px; flex-grow:1; font-weight:bold;">Bearbeiten</button>
+                                <button class="delete-btn" onclick="deleteRecipe(${index})">Löschen</button>
+                            </div>
+                        </div>
+                    </details>
+                `;
+            });
+        }
+
+        function filterRecipes() {
+            const term = document.getElementById('searchBar').value.toLowerCase();
+            const items = document.querySelectorAll('.recipe-item');
+            items.forEach(item => {
+                const title = item.querySelector('summary').innerText.toLowerCase();
+                item.style.display = title.includes(term) ? "block" : "none";
+            });
+        }
+
+        function deleteRecipe(index) {
+            if(confirm("Sicher löschen?")) {
+                recipes.splice(index, 1);
+                localStorage.setItem('myRecipes', JSON.stringify(recipes));
+                renderRecipes();
+            }
+        }
+
+        function clearInputs() {
+            document.getElementById('title').value = "";
+            document.getElementById('ingredients').value = "";
+            document.getElementById('instructions').value = "";
+        }
+
+        renderRecipes();
+    </script>
+</body>
+</html>
